@@ -6,7 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
-    boolean existByName(String name);
+    boolean existsByName(String name);
 
     Page<Product> findAll(Pageable pageable); // phan trang
 }

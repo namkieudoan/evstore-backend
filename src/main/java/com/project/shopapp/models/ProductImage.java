@@ -10,18 +10,16 @@ import lombok.*;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class ProductImage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(name = "product_id")
-    private String productId;
-
-    @Column(name = "image_url", length = 300)
-    private String imageUrl;
+    private int id;
 
     @ManyToOne
     @JoinColumn(name = "product_id")
     private Product product;
+
+    @Column(name = "image_url", length = 300)
+    private String imageUrl;
 }
