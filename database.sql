@@ -31,6 +31,11 @@ CREATE TABLE tokens(
     user_id INT,
     FOREIGN KEY (user_id) REFERENCES users(id) 
 );
+--update name: expired -> expried
+ALTER TABLE tokens DROP COLUMN expried;
+ALTER TABLE tokens ADD COLUMN expired TINYINT(1) NOT NULL;
+
+
 -- support login from google & facebook
 CREATE TABLE social_accounts(
     id int PRIMARY KEY AUTO_INCREMENT,
@@ -85,13 +90,11 @@ CREATE TABLE orders(
     shipping_address VARCHAR(200),
     shipping_date DATE,
     tracking_number VARCHAR(100),
-    payment_method VARCHAR(100)
+    payment_method VARCHAR(100),
+    active TINYINT(1),
+    payment_date DATE,
+    status ENUM('pending', 'processing','shipped','delivered','cancelled') COMMENT 'Trang thai don hang'
 );
-ALTER TABLE orders ADD COLUMN active TINYINT(1);
-
--- thêm status enum {pending, processing,delivered} comment : trạng thái đơn hàng
-ALTER TABLE orders DROP COLUMN status;
-ALTER TABLE orders ADD COLUMN status ENUM('pending', 'processing', 'deliver') COMMENT 'Trang thai don hang';
 
 CREATE TABLE order_details(
     id INT PRIMARY KEY AUTO_INCREMENT,
