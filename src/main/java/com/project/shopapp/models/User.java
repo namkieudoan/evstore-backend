@@ -1,5 +1,7 @@
 package com.project.shopapp.models;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -33,13 +35,13 @@ public class User extends BaseEntity {
     private boolean active;
 
     @Column(name = "date_of_birth")
-    private Date date_of_birth;
+    private Date dateOfBirth;
 
     @Column(name = "facebook_account_id")
-    private int facebook_account_id;
+    private int facebookAccountId;
 
     @Column(name = "google_account_id")
-    private int google_account_id;
+    private int googleAccountId;
 
     @ManyToOne
     @JoinColumn(name = "role_id")
