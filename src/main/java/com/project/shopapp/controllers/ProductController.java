@@ -1,7 +1,13 @@
 package com.project.shopapp.controllers;
 
 import com.project.shopapp.dtos.ProductDTO;
+import com.project.shopapp.dtos.ProductImageDTO;
+import com.project.shopapp.models.Product;
+import com.project.shopapp.models.ProductImage;
+import com.project.shopapp.services.IProductService;
+import com.project.shopapp.services.ProductService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -22,24 +28,13 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("${api.prefix}/products")
+@RequiredArgsConstructor
 public class ProductController {
-    @GetMapping("")
-    public ResponseEntity<String> getProducts(
-            @RequestParam("page") int page,
-            @RequestParam("limit") int limit
-    ){
-        return ResponseEntity.ok("get products here");
-    }
+    private final IProductService productService;
 
-    @GetMapping("/{id}")
-    public ResponseEntity<String> getProductById(@PathVariable("id") String productId){
-        return ResponseEntity.ok("get product by id: " + productId);
-    }
-
-    @PostMapping(value = "", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> insertProduct(
-            @Valid @ModelAttribute ProductDTO productDTO,
-//            @RequestPart("file")MultipartFile file,
+    @PostMapping(value = "")
+    public ResponseEntity<?> createProduct(
+            @Valid @RequestBody ProductDTO productDTO,
             BindingResult bindingResult
             ) throws IOException {
         try {
@@ -50,9 +45,25 @@ public class ProductController {
                         .toList();
                 return ResponseEntity.badRequest().body(errorMessages);
             }
-
-            List<MultipartFile> files = productDTO.getFiles();
+            Product newProduct =  productService.createProduct(productDTO);
+            return ResponseEntity.ok(newProduct);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+    @PostMapping(value = "uploads/{id}",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> uploadImages(
+            @PathVariable("id") Long id,
+            @ModelAttribute("files") List<MultipartFile> files) {
+        try {
+            Product existingProduct = productService.getProductById(id);
             files = files == null ? new ArrayList<MultipartFile>() : files;
+            if(files.size() > ProductImage.MAXIMUM_IMAGES_PER_PRODUCT) {
+                return ResponseEntity.badRequest().body("You can only upload maximum 4 images");
+            }
+            List<ProductImage> productImages = new ArrayList<>();
+
             for(MultipartFile file: files){
                 if(file.getSize() ==0){
                     continue;
@@ -66,15 +77,25 @@ public class ProductController {
                     return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
                             .body("File must be an image");
                 }
-                //luu file va update thumbnail in productDTO
+                //luu file va update thumbnail trong productDTO
                 String filename = storeFile(file);
+                // luu vao doi tuong product trong DB
+                ProductImage productImage = productService.createProductImage(
+                        (long) existingProduct.getId(), //wrap int to long
+                        ProductImageDTO.builder()
+                                .imageUrl(filename)
+                                .build()
+                );
+                // service da luu vao bang product_images
+                productImages.add(productImage);
             }
-
-            return ResponseEntity.ok("product inserted: " + productDTO.toString());
+            return ResponseEntity.ok().body(productImages);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+
     }
+
     private String storeFile(MultipartFile file) throws IOException {
         String filename = StringUtils.cleanPath(file.getOriginalFilename());
 
@@ -95,7 +116,18 @@ public class ProductController {
 
         return uniqueFileName;
     }
+    @GetMapping("")
+    public ResponseEntity<String> getProducts(
+            @RequestParam("page") int page,
+            @RequestParam("limit") int limit
+    ){
+        return ResponseEntity.ok("get products here");
+    }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<String> getProductById(@PathVariable("id") String productId){
+        return ResponseEntity.ok("get product by id: " + productId);
+    }
     @PutMapping("/{id}")
     public ResponseEntity<String> updateProduct(@PathVariable("id") String productId){
         return ResponseEntity.status(HttpStatus.OK).body("Product updated: " + productId);

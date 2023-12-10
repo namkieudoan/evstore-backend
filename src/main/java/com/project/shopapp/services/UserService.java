@@ -21,6 +21,8 @@ public class UserService implements IUserService{
         if(userRepository.existsByPhoneNumber(phoneNumber)){
             throw new DataIntegrityViolationException("Phone number already exists");
         }
+        Role existingRole = roleRepository.findById(userDTO.getRoleId())
+                .orElseThrow(()-> new DataNotFoundException("Role not found"));
         //convert useDTO -> use
         User newUser = User.builder()
                 .fullName(userDTO.getFullName())
@@ -30,10 +32,9 @@ public class UserService implements IUserService{
                 .dateOfBirth(userDTO.getDateOfBirth())
                 .facebookAccountId(userDTO.getFacebookAccountId())
                 .googleAccountId(userDTO.getGoogleAccountId())
+                .role(existingRole)
                 .build();
-        Role role = roleRepository.findById(userDTO.getRoleId())
-            .orElseThrow(()-> new DataNotFoundException("Role not found"));
-        newUser.setRole(role);
+
         //check accountID -> ko yc password
         if(userDTO.getGoogleAccountId() ==0 && userDTO.getFacebookAccountId() ==0){
             String password = userDTO.getPassword();
