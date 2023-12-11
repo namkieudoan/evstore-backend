@@ -1,18 +1,18 @@
 package com.project.shopapp.controllers;
 
+import com.github.javafaker.Faker;
 import com.project.shopapp.dtos.ProductDTO;
 import com.project.shopapp.dtos.ProductImageDTO;
+import com.project.shopapp.exceptions.DataNotFoundException;
 import com.project.shopapp.models.Product;
 import com.project.shopapp.models.ProductImage;
 import com.project.shopapp.responses.ProductListResponse;
 import com.project.shopapp.responses.ProductResponse;
 import com.project.shopapp.services.IProductService;
-import com.project.shopapp.services.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -23,7 +23,6 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -144,18 +143,59 @@ public class ProductController {
                 .totalPages(totalPages)
                 .build());
     }
-    
     @GetMapping("/{id}")
-    public ResponseEntity<String> getProductById(@PathVariable("id") String productId){
-        return ResponseEntity.ok("get product by id: " + productId);
+    public ResponseEntity<?> getProductById(@PathVariable("id") Long productId){
+        try {
+            Product existingProduct = productService.getProductById(productId);
+//            return ResponseEntity.ok(existingProduct);
+            return ResponseEntity.ok(ProductResponse.fromProduct(existingProduct));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
     @PutMapping("/{id}")
-    public ResponseEntity<String> updateProduct(@PathVariable("id") String productId){
-        return ResponseEntity.status(HttpStatus.OK).body("Product updated: " + productId);
+    public ResponseEntity<?> updateProduct(
+            @PathVariable("id") Long productId,
+            @Valid @RequestBody ProductDTO productDTO){
+        try {
+            ProductResponse productResponse = ProductResponse.fromProduct(productService.updateProduct(productId,productDTO));
+            return ResponseEntity.ok(productResponse);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+
     }
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteProduct(@PathVariable("id") long productId){
-//        return ResponseEntity.status(HttpStatus.OK).body("Product deleted: " + productId);
-        return ResponseEntity.ok(String.format("Product with id = %d deleted successfully", productId));
+        try {
+            productService.deleteProduct(productId);
+            return ResponseEntity.ok(String.format("Product with id = %d deleted successfully", productId));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+    //faker db
+//    @PostMapping("/generateFakeProducts")
+    public ResponseEntity<String> generateFakeProducts(){
+        Faker faker =  new Faker();
+        for(int i =0 ; i < 5_000; i++){
+            String productName = faker.commerce().productName();
+            if(productService.existsByName(productName)) {
+                continue;
+            }
+            ProductDTO productDTO = ProductDTO.builder()
+                    .name(productName)
+                    .price((float) faker.number().numberBetween(10,9_000_000))
+                    .description(faker.lorem().sentence())
+                    .categoryId(faker.number().numberBetween(1,4))
+                    .thumbnail("")
+                    .build();
+            try {
+                productService.createProduct(productDTO);
+            } catch (DataNotFoundException e) {
+                return ResponseEntity.badRequest().body(e.getMessage());
+            }
+        }
+        return ResponseEntity.ok("Fake products created successfully");
     }
 }

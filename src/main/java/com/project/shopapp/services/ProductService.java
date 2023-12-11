@@ -55,17 +55,10 @@ public class ProductService implements IProductService{
     @Override
     public Page<ProductResponse> getAllProduct(PageRequest pageRequest) {
         // get listProduct by page and limit
-        return productRepository.findAll(pageRequest).map(product -> {
-            ProductResponse productResponse = ProductResponse.builder()
-                .name(product.getName())
-                .price(product.getPrice())
-                .thumbnail(product.getThumbnail())
-                .description(product.getDescription())
-                .categoryId((long) product.getCategory().getId())
-                .build();
-            productResponse.setCreatedAt(product.getCreatedAt());
-            productResponse.setUpdatedAt(product.getUpdatedAt());
-          return productResponse;
+        return productRepository
+                .findAll(pageRequest)
+                .map(product -> {
+            return ProductResponse.fromProduct(product);
         });
     }
 
@@ -87,7 +80,8 @@ public class ProductService implements IProductService{
             existingProduct.setThumbnail(productDTO.getThumbnail());
 
             ResponseEntity.ok("update product successfully");
-            return productRepository.save(existingProduct);
+            productRepository.save(existingProduct);
+            return existingProduct;
         }
         return null;
     }
