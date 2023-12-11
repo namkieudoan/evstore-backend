@@ -104,8 +104,8 @@ public class ProductService implements IProductService{
                 .build();
         //so luong insert  size < 5
         int size = productImageRepository.findByProductId(productId).size();
-        if(size >= ProductImage.MAXIMUM_IMAGES_PER_PRODUCT){
-            throw new InvalidParamException("Number of images must be <=" + ProductImage.MAXIMUM_IMAGES_PER_PRODUCT);
+        if(size > ProductImage.MAXIMUM_IMAGES_PER_PRODUCT){
+            throw new InvalidParamException("Number of images is fulled, maximum: " + ProductImage.MAXIMUM_IMAGES_PER_PRODUCT);
         }
         return productImageRepository.save(newProductImage);
     }

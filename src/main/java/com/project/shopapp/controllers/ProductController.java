@@ -24,6 +24,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @RestController
@@ -59,8 +60,9 @@ public class ProductController {
         try {
             Product existingProduct = productService.getProductById(id);
             files = files == null ? new ArrayList<MultipartFile>() : files;
+
             if(files.size() > ProductImage.MAXIMUM_IMAGES_PER_PRODUCT) {
-                return ResponseEntity.badRequest().body("You can only upload maximum 4 images");
+                return ResponseEntity.badRequest().body("You can only upload maximum"+ ProductImage.MAXIMUM_IMAGES_PER_PRODUCT +"images");
             }
             List<ProductImage> productImages = new ArrayList<>();
 
@@ -73,7 +75,7 @@ public class ProductController {
                             .body("File is too large ! Maximum size is 10 MB");
                 }
                 String contentType = file.getContentType();
-                if (!contentType.startsWith("image/")) {
+                if (contentType == null ||!contentType.startsWith("image/")) {
                     return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
                             .body("File must be an image");
                 }
@@ -97,11 +99,12 @@ public class ProductController {
     }
 
     private String storeFile(MultipartFile file) throws IOException {
-        String filename = StringUtils.cleanPath(file.getOriginalFilename());
-
+        if(file.getOriginalFilename() == null){
+            throw new IOException("Invalid image format");
+        }
+        String filename = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
         //  add UUID before file's name to unique
         String uniqueFileName = UUID.randomUUID().toString() + "_" + filename;
-
         // path dir you want to save
         java.nio.file.Path uploadDir = Paths.get("uploads");
         // check is there dir exist or create a new dir
