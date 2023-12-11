@@ -10,6 +10,7 @@ import com.project.shopapp.models.ProductImage;
 import com.project.shopapp.repositories.CategoryRepository;
 import com.project.shopapp.repositories.ProductImageRepository;
 import com.project.shopapp.repositories.ProductRepository;
+import com.project.shopapp.responses.ProductResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -52,10 +53,20 @@ public class ProductService implements IProductService{
                 ));
     }
     @Override
-    public Page<Product> getAllProduct(PageRequest pageRequest) {
+    public Page<ProductResponse> getAllProduct(PageRequest pageRequest) {
         // get listProduct by page and limit
-        productRepository.findAll(pageRequest); // dien pageRequest trong controller
-        return null;
+        return productRepository.findAll(pageRequest).map(product -> {
+            ProductResponse productResponse = ProductResponse.builder()
+                .name(product.getName())
+                .price(product.getPrice())
+                .thumbnail(product.getThumbnail())
+                .description(product.getDescription())
+                .categoryId((long) product.getCategory().getId())
+                .build();
+            productResponse.setCreatedAt(product.getCreatedAt());
+            productResponse.setUpdatedAt(product.getUpdatedAt());
+          return productResponse;
+        });
     }
 
     @Override
