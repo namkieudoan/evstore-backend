@@ -3,7 +3,7 @@ package com.project.shopapp.models;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.Date;
 
 @Entity
@@ -23,7 +23,7 @@ public class Order {
     private String fullName;
 
     @Column(name = "email", length = 100)
-    private Float email;
+    private String email;
 
     @Column(name = "phone_number", nullable = false, length = 20)
     private String phoneNumber;
@@ -38,7 +38,7 @@ public class Order {
     private Float totalMoney;
 
     @Column(name = "order_date")
-    private LocalDateTime orderDate;
+    private Date orderDate;
 
     @Column(name = "shipping_method")
     private String shippingMethod;
@@ -47,7 +47,7 @@ public class Order {
     private String shippingAddress;
 
     @Column(name = "shipping_date")
-    private Date shippingDate;
+    private LocalDate shippingDate;
 
     @Column(name = "tracking_number")
     private String trackingNumber;
@@ -55,6 +55,7 @@ public class Order {
     @Column(name = "payment_method")
     private String paymentMethod;
 
+    @Column(name = "is_active")
     private boolean active;
 
     @Column(name = "status")
