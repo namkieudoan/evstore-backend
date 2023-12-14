@@ -24,4 +24,4 @@ api:
     prefix: api/v1
 jwt:
     expiration: 2592000 # 30 days
-    secretKey: I have many love
+    secretKey: eX0QNLWDMF8zGexsvtiFZyDoc5h+6V3ylKferWdNdoo=

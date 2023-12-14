@@ -30,8 +30,8 @@ public class UserController {
                         .toList();
                 return ResponseEntity.badRequest().body(errorMessages);
             }
-            userService.createUser(userDTO);
-            return ResponseEntity.ok("Register successfully");
+            User user = userService.createUser(userDTO);
+            return ResponseEntity.ok(user);
         }catch (Exception e){
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -42,8 +42,8 @@ public class UserController {
     public ResponseEntity<String> login(@Valid @RequestBody UserLoginDTO userLoginDTO) throws Exception {
         // check info and create tooken
         // phan securuty sau
-        User token = userService.login(userLoginDTO.getPhoneNumber(), userLoginDTO.getPassword());
+        String token = userService.login(userLoginDTO.getPhoneNumber(), userLoginDTO.getPassword());
         // return token in response
-        return ResponseEntity.ok("some token");
+        return ResponseEntity.ok(token);
     }
 }
