@@ -7,5 +7,5 @@ import org.springframework.stereotype.Service;
 
 public interface IUserService {
     User createUser(UserDTO userDTO) throws DataNotFoundException;
-    String login(String phoneNumber, String passWord);
+    String login(String phoneNumber, String passWord) throws Exception;
 }

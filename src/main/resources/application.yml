@@ -22,3 +22,6 @@ spring:
             max-request-size: 50MB
 api:
     prefix: api/v1
+jwt:
+    expiration: 2592000 # 30 days
+    secretKey: I have many love
